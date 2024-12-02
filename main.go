@@ -28,13 +28,16 @@ type Training struct {
 // количество_повторов * длина_шага / м_в_км
 func (t Training) distance() float64 {
 	// вставьте ваш код ниже
-	return float64(t.Action) * t.LenStep / float64(MInKm)
+	return float64(t.Action) * t.LenStep / MInKm
 }
 
 // meanSpeed возвращает среднюю скорость бега или ходьбы.
 func (t Training) meanSpeed() float64 {
 	// вставьте ваш код ниже
-	return t.distance() / t.Duration.Hours()
+	if t.Duration.Hours() != 0 {
+		return t.distance() / t.Duration.Hours()
+	}
+	return 0
 }
 
 // Calories возвращает количество потраченных килокалорий на тренировке.
@@ -138,8 +141,11 @@ type Walking struct {
 func (w Walking) Calories() float64 {
 	// вставьте ваш код ниже
 	averageSpeedMetersSecond := w.meanSpeed() * KmHInMsec
-	return (CaloriesWeightMultiplier*w.Weight + (math.Pow(averageSpeedMetersSecond, 2) / w.Height / CmInM)) *
-		CaloriesSpeedHeightMultiplier * w.Weight * w.Duration.Minutes()
+	if w.Height != 0 {
+		return (CaloriesWeightMultiplier*w.Weight + (math.Pow(averageSpeedMetersSecond, 2) / w.Height / CmInM)) *
+			CaloriesSpeedHeightMultiplier * w.Weight * w.Duration.Minutes()
+	}
+	return 0
 }
 
 // TrainingInfo возвращает структуру InfoMessage с информацией о проведенной тренировке.
@@ -172,7 +178,10 @@ type Swimming struct {
 // Это переопределенный метод Calories() из Training.
 func (s Swimming) meanSpeed() float64 {
 	// вставьте ваш код ниже
-	return float64(s.LengthPool*s.CountPool) / MInKm / float64(s.Duration)
+	if s.Duration.Hours() != 0 {
+		return float64(s.LengthPool*s.CountPool) / MInKm / s.Duration.Hours()
+	}
+	return 0
 }
 
 // Calories возвращает количество калорий, потраченных при плавании.
@@ -188,8 +197,9 @@ func (s Swimming) Calories() float64 {
 // TrainingInfo returns info about swimming training.
 // Это переопределенный метод TrainingInfo() из Training.
 func (s Swimming) TrainingInfo() InfoMessage {
-	// вставьте ваш код ниже
 	info := s.Training.TrainingInfo()
+	info.Distance = float64(s.LengthPool) * float64(s.CountPool) / MInKm
+	info.Speed = s.meanSpeed()
 	info.Calories = s.Calories()
 	return info
 }
